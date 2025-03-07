@@ -10,11 +10,15 @@ then
    exit
 fi
 
-# Code based on Alex Romero's "Imputation.Rmd"
 input_vcf=$1
 crossmap_chain=$2
-ref_fasta=$3
+ref_dir=$3
 output_dir=$4
+
+# Download 1000G phase 3 in hg19 as reference
+wget -P "$ref_dir" \
+   ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/human_g1k_v37.fasta.gz
+ref_fasta="${ref_dir}/human_g1k_v37.fasta.gz"
 
 # Get basename of input_vcf
 input_vcf_name=$(basename $input_vcf | sed 's/\.vcf.*//')
@@ -57,4 +61,4 @@ bgzip -f "$output_dir"/"$input_vcf_name"_hg19_sorted_fill.vcf
 bcftools index "$output_dir"/"$input_vcf_name"_hg19_sorted_fill.vcf.gz
 
 # Cleanup
-# rm "$output_dir"/temp_*
+rm "$output_dir"/temp_*

@@ -9,8 +9,13 @@ then
 fi
 
 vcf_input=$1
-hap_ref=$2
+hap_ref_dir=$2
 threads=$3
+
+# Download 1000G phase 3 in hg19 as reference
+wget -P "$hap_ref_dir" \
+   ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/release/20130502/ALL.chr19.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz{,.tbi}
+hap_ref_name="ALL.chr19.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz"
 
 # Convert to BCF for better phasing performance
 vcf_name="${vcf_input%.vcf.gz}"
@@ -21,13 +26,13 @@ bcftools convert -Ob -o "$vcf_name".bcf \
 tabix "$vcf_name".bcf
 
 bcftools convert -Ob -o "$hap_ref_name".bcf \
-	"$hap_ref"
-tabix "$hap_ref_name".bcf
+	"${hap_ref_dir}/${hap_ref_name}"
+tabix "${hap_ref_dir}/${hap_ref_name}.bcf"
 
 # Run phasing with Eagle
 eagle --vcfTarget "$vcf_name".bcf \
-	--geneticMapFile="/projects/sslack@xsede.org/software/Eagle_v2.4.1/tables/genetic_map_hg19_withX.txt.gz" \
-	--vcfRef="$hap_ref_name".bcf \
+	--geneticMapFile="tables/genetic_map_hg19_withX.txt.gz" \
+	--vcfRef="${hap_ref_dir}/${hap_ref_name}.bcf" \
 	--numThreads=$threads \
 	--allowRefAltSwap --chrom 19 \
 	--outPrefix="$vcf_name"_phased
