@@ -16,7 +16,7 @@ ref_dir=$3
 output_dir=$4
 
 # Download 1000G phase 3 in hg19 as reference
-wget -P "$ref_dir" \
+wget -nv -P "$ref_dir" \
    ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/human_g1k_v37.fasta.gz
 ref_fasta="${ref_dir}/human_g1k_v37.fasta.gz"
 

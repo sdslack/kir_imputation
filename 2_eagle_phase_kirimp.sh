@@ -13,7 +13,7 @@ hap_ref_dir=$2
 threads=$3
 
 # Download 1000G phase 3 in hg19 as reference
-wget -P "$hap_ref_dir" \
+wget -nv -P "$hap_ref_dir" \
    ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/release/20130502/ALL.chr19.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz{,.tbi}
 hap_ref_name="ALL.chr19.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz"
 
