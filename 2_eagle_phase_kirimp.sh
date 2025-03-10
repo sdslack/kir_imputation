@@ -12,10 +12,16 @@ vcf_input=$1
 hap_ref_dir=$2
 threads=$3
 
+# TODO: add check for hap ref bcf and skip first part if found
+
 # Download 1000G phase 3 in hg19 as reference
+# wget -nv -P "$hap_ref_dir" \
+   # ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/release/20130502/ALL.chr19.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz{,.tbi}
+hap_ref="ALL.chr19.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz"
+
+# Download genetic map
 wget -nv -P "$hap_ref_dir" \
-   ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/release/20130502/ALL.chr19.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz{,.tbi}
-hap_ref_name="ALL.chr19.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz"
+    https://storage.googleapis.com/broad-alkesgroup-public/Eagle/downloads/tables/genetic_map_hg19_withX.txt.gz
 
 # Convert to BCF for better phasing performance
 vcf_name="${vcf_input%.vcf.gz}"
@@ -25,13 +31,13 @@ bcftools convert -Ob -o "$vcf_name".bcf \
 	"$vcf_input"
 tabix "$vcf_name".bcf
 
-bcftools convert -Ob -o "$hap_ref_name".bcf \
-	"${hap_ref_dir}/${hap_ref_name}"
+bcftools convert -Ob -o "${hap_ref_dir}/${hap_ref_name}.bcf" \
+	"${hap_ref_dir}/${hap_ref}"
 tabix "${hap_ref_dir}/${hap_ref_name}.bcf"
 
 # Run phasing with Eagle
 eagle --vcfTarget "$vcf_name".bcf \
-	--geneticMapFile="tables/genetic_map_hg19_withX.txt.gz" \
+	--geneticMapFile="${hap_ref_dir}/genetic_map_hg19_withX.txt.gz" \
 	--vcfRef="${hap_ref_dir}/${hap_ref_name}.bcf" \
 	--numThreads=$threads \
 	--allowRefAltSwap --chrom 19 \
