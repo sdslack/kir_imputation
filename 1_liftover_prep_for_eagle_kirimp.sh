@@ -4,6 +4,7 @@ if [ "$#" -eq 0 ]
 then
    echo "Usage: ${0##*/} <input_vcf> <crossmap_chain>"
    echo "       <ref_fasta> <output_dir> <maf>"
+   echo "Input should be VCF with only chromosome 19."
    echo "Script uses CrossMap.py for liftover to hg19."
    echo "After liftover, removes any previous phasing"
    echo "and prepares for input into Eagle for phasing."
@@ -44,9 +45,9 @@ CrossMap vcf \
 plink2 --vcf "$output_dir"/temp_"$input_vcf_name"_hg19.vcf.gz \
    --chr chr19 --maf $maf \
    --make-bed \
-   --out "$output_dir"/"$input_vcf_name"_chr19_maf${maf}_hg19
+   --out "$output_dir"/"$input_vcf_name"_maf${maf}_hg19
 
-plink2 --bfile "$output_dir"/"$input_vcf_name"_chr19_maf${maf}_hg19 \
+plink2 --bfile "$output_dir"/"$input_vcf_name"_maf${maf}_hg19 \
    --chr chr19 \
    --recode vcf \
    --out "$output_dir"/temp_no_phase_"$input_vcf_name"_hg19
