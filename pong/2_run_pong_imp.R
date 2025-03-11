@@ -40,9 +40,9 @@ pred.guess_postprob = as.data.frame(pred.guess$postprob)
 
 write.table(
   pred.guess_value,
-  paste0(out_dir, "KIR3DLS1_pred_guess_value.txt"),
+  paste0(out_dir, "/KIR3DLS1_pred_guess_value.txt"),
   quote=F, sep="\t", row.names=F, col.names=T)
 write.table(
   pred.guess_postprob,
-  paste0(out_dir, "out/KIR3DLS1_pred_guess_postprob.txt"),
+  paste0(out_dir, "/KIR3DLS1_pred_guess_postprob.txt"),
   quote=F, sep="\t", row.names=F, col.names=T)

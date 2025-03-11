@@ -20,8 +20,8 @@ threads=$3
 hap_ref="ALL.chr19.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz"
 
 # Download genetic map
-wget -nv -P "$hap_ref_dir" \
-    https://storage.googleapis.com/broad-alkesgroup-public/Eagle/downloads/tables/genetic_map_hg19_withX.txt.gz
+# wget -nv -P "$hap_ref_dir" \
+#    https://storage.googleapis.com/broad-alkesgroup-public/Eagle/downloads/tables/genetic_map_hg19_withX.txt.gz
 
 # Convert to BCF for better phasing performance
 vcf_name="${vcf_input%.vcf.gz}"
@@ -36,11 +36,13 @@ bcftools convert -Ob -o "${hap_ref_dir}/${hap_ref_name}.bcf" \
 tabix "${hap_ref_dir}/${hap_ref_name}.bcf"
 
 # Run phasing with Eagle
-eagle --vcfTarget "$vcf_name".bcf \
+# --vcfRef="${hap_ref_dir}/${hap_ref_name}.bcf"
+# --allowRefAltSwap
+# if re-add, needs to be --vcfTarget, not --vcf
+eagle --vcf "$vcf_name".bcf \
 	--geneticMapFile="${hap_ref_dir}/genetic_map_hg19_withX.txt.gz" \
-	--vcfRef="${hap_ref_dir}/${hap_ref_name}.bcf" \
 	--numThreads=$threads \
-	--allowRefAltSwap --chrom 19 \
+	--chrom 19 \
 	--outPrefix="$vcf_name"_phased
 
 # Make temp PLINK2 files for mapping with KIR*IMP ref
