@@ -1,7 +1,7 @@
 #!/bin/bash
 if [ "$#" -eq 0 ]
 then
-   echo "Usage: ${0##*/} <vcf_input> <recode_file> <kirimp_ref>"
+   echo "Usage: ${0##*/} <plink_prefix> <recode_file> <kirimp_ref>"
    echo "Matches data alleles to KIR*IMP reference using"
    echo "output from 3_make_file_match_alleles_kirimp.R"
    echo "Also updates all varIDs to chr:pos:ref:alt after"
@@ -9,14 +9,12 @@ then
    exit
 fi
 
-vcf_input=$1
+plink_prefix=$1
 recode_file=$2
 kirimp_ref=$3
 
-vcf_input_name=$(basename $vcf_input | sed 's/\.vcf.*//')
-
 # Update alleles to match KIR*IMP reference panel
-plink2 --vcf  "$vcf_input" \
+plink2 --vcf  "$plink_prefix" \
    --chr chr19 \
    --ref-allele force "$recode_file" 2 1 \
    --make-pgen \
