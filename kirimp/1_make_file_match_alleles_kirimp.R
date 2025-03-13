@@ -15,12 +15,15 @@ kirimp_file <- args[2]
 pvar <- read_delim(pvar_file, comment = "##", show_col_types = FALSE)
 kirimp <- read_csv(kirimp_file, show_col_types = FALSE)
 
+pvar_chr19 <- pvar %>%
+  dplyr::filter(str_detect(`#CHROM`, "19"))
+
 print(paste0("Variants in KIR*IMP reference panel: ", nrow(kirimp)))
-print(paste0("Variants in input data: ", nrow(pvar)))
+print(paste0("Variants in input data: ", nrow(pvar_chr19)))
 
 # Merge by position
-merge <- inner_join(pvar, kirimp, by = c("POS" = "position"))
-print(paste0("Variants in inner_join of KIR*IMP ref and input data: ",
+merge <- inner_join(pvar_chr19, kirimp, by = c("POS" = "position"))
+print(paste0("Variants in inner_join of KIR*IMP ref and input data by position: ",
              nrow(merge)))
 
 # Check that reference/alternate alleles match
