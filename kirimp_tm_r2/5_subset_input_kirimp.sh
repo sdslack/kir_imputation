@@ -9,6 +9,7 @@ fi
 
 hapsample_input=$1  # should be prefix without file extension
 snp_list=$2  # should be list of variant IDs
+out_suffix=$3
 
 hapsample_base=$(basename "$hapsample_input")
 hapsample_dir=$(dirname "$hapsample_input")
@@ -31,7 +32,7 @@ plink2 \
 
 # Write out new hapsample
 bcftools convert "${hapsample_dir}/tmp_${hapsample_base}_chrpos_vcf.vcf" \
-	--hapsample "${hapsample_input}_subset"
+	--hapsample "${hapsample_input}_${out_suffix}"
 
 # Clean up
 rm ${hapsample_dir}/tmp_*
