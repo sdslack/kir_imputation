@@ -24,7 +24,7 @@ bcftools sort $input_vcf \
    -Oz -o "$output_dir"/temp_"$input_vcf_name"_sorted.vcf.gz
 
 # Lift over from hg38 to hg19
-CrossMap.py vcf \
+CrossMap vcf \
    $crossmap_chain \
    "$output_dir"/temp_"$input_vcf_name"_sorted.vcf.gz \
    $ref_fasta \
