@@ -4,9 +4,9 @@ if [ "$#" -eq 0 ]
 then
    echo "Usage: ${0##*/} <input_vcf> <crossmap_chain>"
    echo "       <ref_fasta> <output_dir>"
-   echo "Script uses CrossMap for liftover to hg19."
-   echo "After liftover, removes any previous phasing"
-   echo "and prepares for input into Eagle for phasing."
+   echo "Script subsets to chr19, removes previous phasing, "
+   echo "uses CrossMap for liftover to hg19, and prepares "
+   echo "for input into Eagle2 for phasing."
    exit
 fi
 
