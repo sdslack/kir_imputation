@@ -46,10 +46,7 @@ bcftools sort "$output_dir"/temp_"$input_vcf_name"_hg19.vcf \
 # Add AC & AN tags (required for Eagle)
 bcftools +fill-AN-AC \
    "$output_dir"/temp_"$input_vcf_name"_hg19_sorted.vcf.gz \
-   -Ov -o "$output_dir"/"$input_vcf_name"_hg19_sorted_fill.vcf
-
-# Compress
-bgzip -f "$output_dir"/"$input_vcf_name"_hg19_sorted_fill.vcf
+   -Oz -o "$output_dir"/"$input_vcf_name"_hg19_sorted_fill.vcf.gz
 
 # Index sorted vcf
 bcftools index "$output_dir"/"$input_vcf_name"_hg19_sorted_fill.vcf.gz
