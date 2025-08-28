@@ -55,4 +55,4 @@ bgzip -f "$output_dir"/"$input_vcf_name"_hg19_sorted_fill.vcf
 bcftools index "$output_dir"/"$input_vcf_name"_hg19_sorted_fill.vcf.gz
 
 # Cleanup
-rm "$output_dir"/temp_*
+# rm "$output_dir"/temp_*
