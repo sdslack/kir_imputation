@@ -39,11 +39,29 @@ vignettes/*.pdf
 # R Environment Variables
 .Renviron
 
-# pkgdown site
-docs/
-
 # translation temp files
 po/*~
 
 # RStudio Connect folder
 rsconnect/
+
+# Mac OS specific files
+*.DS_Store
+
+# Windows OS specific files
+
+# Data files
+*.csv
+*.Rdata
+*.RData
+*.rds
+*.xls*
+*.tsv
+
+# Images
+*.png
+*.jpg
+*.jpeg
+
+# Snakemake files
+*.snakemake/
