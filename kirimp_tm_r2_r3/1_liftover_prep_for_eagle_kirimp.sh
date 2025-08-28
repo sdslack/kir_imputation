@@ -29,7 +29,7 @@ plink2 --pfile  "$output_dir"/temp_"$input_vcf_name"_chr19 \
    --out "$output_dir"/temp_"$input_vcf_name"_chr19
 
 # Sort VCF
-bcftools sort "$output_dir"/temp_"$input_vcf_name"_chr19 \
+bcftools sort "$output_dir"/temp_"$input_vcf_name"_chr19.vcf \
    -Oz -o "$output_dir"/temp_"$input_vcf_name"_chr19_sorted.vcf.gz
 
 # Lift over from hg38 to hg19
