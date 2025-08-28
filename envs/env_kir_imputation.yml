@@ -7,7 +7,7 @@ dependencies:
   - conda-forge::r-base=4.4
   - conda-forge::r-essentials
   - bioconda::bcftools=1.22
-  - bioconda::crossmap=0.7.3
+  - bioconda::crossmap=0.7.0
   - bioconda::eagle2=2.4.1
   - bioconda::htslib=1.22
   
