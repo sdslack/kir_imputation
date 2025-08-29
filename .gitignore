@@ -51,7 +51,7 @@ rsconnect/
 # Windows OS specific files
 
 # Data files
-*.csv
+# *.csv  allow KIRIMP reference file
 *.Rdata
 *.RData
 *.rds
