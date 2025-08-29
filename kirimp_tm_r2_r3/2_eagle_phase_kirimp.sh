@@ -23,61 +23,68 @@ reg_start=45300461
 reg_stop=65300461
 
 # Convert input to BCF for better phasing performance
+# TODO: set this to only run if .bcf not found
 vcf_name="${input_vcf%.vcf.gz}"
-bcftools convert -Ob -o "$vcf_name".bcf \
-	"$input_vcf"
-tabix "$vcf_name".bcf
+# bcftools convert -Ob -o "$vcf_name".bcf \
+# 	"$input_vcf"
+# tabix "$vcf_name".bcf
+
+# Set outfile variable
+out_vcf=""
 
 if [ "$hap_ref" = "no" ]; then
-   if [ "$sub_region" = "yes" ]; then
+    if [ "$sub_region" = "yes" ]; then
       echo "Phasing without a haplotype reference and for the 20Mb around KIR*IMP."
-      eagle --vcfTarget "$vcf_name".bcf \
+      out_vcf="${vcf_name}_phased_no_ref_kir_region"
+      eagle --vcf="$vcf_name".bcf \
          --geneticMapFile="/projects/sslack@xsede.org/software/Eagle_v2.4.1/tables/genetic_map_hg19_withX.txt.gz" \
          --numThreads=$threads \
-         --allowRefAltSwap \
-         --outPrefix="$vcf_name"_phased \
+         --outPrefix="$out_vcf" \
          --chrom 19 \
          --bpStart="$reg_start" \
          --bpEnd="$reg_stop"
-   else
+    else
       echo "Phasing without a haplotype reference and for the whole chromosome."
-      eagle --vcfTarget "$vcf_name".bcf \
+      out_vcf="${vcf_name}_phased_no_ref"
+      eagle --vcf="$vcf_name".bcf \
          --geneticMapFile="/projects/sslack@xsede.org/software/Eagle_v2.4.1/tables/genetic_map_hg19_withX.txt.gz" \
          --numThreads=$threads \
-         --allowRefAltSwap \
-         --outPrefix="$vcf_name"_phased \
+         --outPrefix="$out_vcf" \
          --chrom 19
-   fi
+    fi
 else
+   # TODO: set this to only run if .bcf not found
    hap_ref_name="${hap_ref%.vcf.gz}"
-   bcftools convert -Ob -o "$hap_ref_name".bcf \
-      "$hap_ref"
-   tabix "$hap_ref_name".bcf
+   # bcftools convert -Ob -o "$hap_ref_name".bcf \
+     # "$hap_ref"
+   # tabix "$hap_ref_name".bcf
 
-   if [ "$sub_region" = "yes" ]; then
+    if [ "$sub_region" = "yes" ]; then
       echo "Phasing with given haplotype reference and for the 20Mb around KIR*IMP."
+      out_vcf="${vcf_name}_phased_with_ref_kir_region"
       eagle --vcfTarget "$vcf_name".bcf \
          --geneticMapFile="/projects/sslack@xsede.org/software/Eagle_v2.4.1/tables/genetic_map_hg19_withX.txt.gz" \
          --vcfRef="$hap_ref_name".bcf \
          --numThreads=$threads \
          --allowRefAltSwap \
-         --outPrefix="$vcf_name"_phased \
+         --outPrefix="$out_vcf" \
          --chrom 19 \
          --bpStart="$reg_start" \
          --bpEnd="$reg_stop"
-   else
+    else
       echo "Phasing with given haplotype reference and for the whole chromosome."
+      out_vcf="${vcf_name}_phased_with_ref"
       eagle --vcfTarget "$vcf_name".bcf \
          --geneticMapFile="/projects/sslack@xsede.org/software/Eagle_v2.4.1/tables/genetic_map_hg19_withX.txt.gz" \
          --vcfRef="$hap_ref_name".bcf \
          --numThreads=$threads \
          --allowRefAltSwap \
-         --outPrefix="$vcf_name"_phased \
+         --outPrefix="$out_vcf" \
          --chrom 19
    fi
 fi
 
 # Make PLINK2 files for mapping with KIR*IMP ref
-plink2 --vcf "$vcf_name"_phased.vcf.gz \
+plink2 --vcf "$out_vcf".vcf.gz \
    --chr chr19 --make-pgen \
-   --out "$vcf_name"_phased_plink
+   --out "$out_vcf"_plink
