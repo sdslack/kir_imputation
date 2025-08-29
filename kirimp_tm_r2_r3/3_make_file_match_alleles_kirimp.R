@@ -2,7 +2,7 @@
 
 args <- commandArgs(trailingOnly=TRUE)
 
-print("Script makes file for PLINK to adjust TEDDY SNPs so encoding matches")
+print("Script makes file for PLINK to adjust study SNPs so encoding matches")
 print("the KIR*IMP reference panel. First trailing arg should be input temp_")
 print("pvar file output by 1_liftover_teddy_kirimp.sh. Second trailing arg")
 print("should be the the KIR*IMP allele coding CSV file.")

@@ -2,54 +2,91 @@
 
 if [ "$#" -eq 0 ]
 then
-   echo "Usage: ${0##*/} <input_vcf> <crossmap_chain>"
-   echo "       <ref_fasta> <output_dir>"
-   echo "Script subsets to chr19, removes previous phasing, "
-   echo "uses CrossMap for liftover to hg19, and prepares "
-   echo "for input into Eagle2 for phasing."
+   echo "Usage: ${0##*/} <input_plink> <crossmap_chain> <out_dir> "
+   echo "Script subsets to chr19, removes previous phasing, uses "
+   echo "CrossMap for liftover to hg19, and prepares for input "
+   echo "into Eagle2 for phasing."
    exit
 fi
 
-# Code based on Alex Romero's "Imputation.Rmd"
-input_vcf=$1
+input_plink=$1  # path to PLINK prefix
 crossmap_chain=$2
-ref_fasta=$3
-output_dir=$4
+out_dir=$3
 
-# Get basename of input_vcf
-input_vcf_name=$(basename $input_vcf | sed 's/\.vcf.*//')
+code_dir=$(dirname "$0")
 
-# Pass through PLINK to select chr19 & remove previous phasing
-plink2 --vcf  "$input_vcf" \
-   --chr chr19 \
-   --make-pgen erase-phase \
-   --out "$output_dir"/temp_"$input_vcf_name"_chr19
-plink2 --pfile  "$output_dir"/temp_"$input_vcf_name"_chr19 \
-   --recode vcf \
-   --out "$output_dir"/temp_"$input_vcf_name"_chr19
+### Liftover
+# Modified from liftover repo, if revisit should update this to use
+# that code directly instead of having a separate version here.
 
-# Sort VCF
-bcftools sort "$output_dir"/temp_"$input_vcf_name"_chr19.vcf \
-   -Oz -o "$output_dir"/temp_"$input_vcf_name"_chr19_sorted.vcf.gz
+# Get input_plink without path and without extension
+input_plink_name=$(basename "$input_plink")
 
-# Lift over from hg38 to hg19
-CrossMap vcf \
-   $crossmap_chain \
-   "$output_dir"/temp_"$input_vcf_name"_chr19_sorted.vcf.gz \
-   $ref_fasta \
-   "$output_dir"/temp_"$input_vcf_name"_hg19.vcf
+# Subset to chr19 only. If input_plink is in PLINK2 format, also convert
+# to PLINK1.9
+if [ ! -f "${input_plink}.fam" ]; then
+      plink2 --pfile "$input_plink" \
+            --keep-allele-order --chr 19 \
+            --make-bed \
+            --out "${out_dir}/tmp_${input_plink_name}"
+else
+      plink2 --bfile "$input_plink" \
+         --keep-allele-order --chr 19 \
+         --make-bed \
+         --out "${out_dir}/tmp_${input_plink_name}"
+fi
 
-# Sort lifted over VCF
-bcftools sort "$output_dir"/temp_"$input_vcf_name"_hg19.vcf \
-   -Oz -o "$output_dir"/temp_"$input_vcf_name"_hg19_sorted.vcf.gz
+# Create bed file to crossover from hg38 to hg19
+cat "${out_dir}/tmp_${input_plink_name}.bim" | cut -f1 > ${out_dir}/tmp_c1.txt
+cat "${out_dir}/tmp_${input_plink_name}.bim" | cut -f4 > ${out_dir}/tmp_c2.txt
+cat "${out_dir}/tmp_${input_plink_name}.bim" | cut -f2 > ${out_dir}/tmp_c3.txt
+paste ${out_dir}/tmp_c1.txt \
+    ${out_dir}/tmp_c2.txt \
+    ${out_dir}/tmp_c2.txt \
+    ${out_dir}/tmp_c3.txt \
+    > ${out_dir}/tmp_in.bed
+
+# Do crossover
+CrossMap bed "$crossmap_chain" \
+   ${out_dir}/tmp_in.bed  \
+   ${out_dir}/tmp_out.bed
+
+# Extract only those SNPs that were successfully cross-overed
+cut -f4 ${out_dir}/tmp_out.bed > ${out_dir}/tmp_snp_keep.txt
+plink2 --bfile "${out_dir}/tmp_${input_plink_name}" \
+    --extract ${out_dir}/tmp_snp_keep.txt \
+    --make-bed --out ${out_dir}/tmp_gwas
+
+# Update bim file positions
+Rscript --vanilla ${code_dir}/update_pos.R \
+    ${out_dir}/tmp_out.bed ${out_dir}/tmp_gwas.bim
+
+# Set all varids to chr:pos:ref:alt and sort
+plink2 --bfile ${out_dir}/tmp_gwas \
+    --set-all-var-ids @:#:\$r:\$a --new-id-max-allele-len 1000 \
+    --sort-vars \
+    --make-pgen --out "${out_dir}/${input_plink_name}_chr19_hg19"
+
+# Report SNP counts
+orig_snp_nr=`wc -l ${out_dir}/tmp_${input_plink_name}.bim`
+crossover_snp_nr=`wc -l ${out_dir}/tmp_gwas.bim`
+echo "Original SNP nr: $orig_snp_nr"
+echo "Crossovered SNP nr: $crossover_snp_nr"
+
+# Cleanup
+
+### Format for Eagle
+plink2 --pfile "${out_dir}/${input_plink_name}_chr19_hg19" \
+   --export vcf bgz \
+   --out "${out_dir}/tmp_${input_plink_name}_chr19_hg19"
 
 # Add AC & AN tags (required for Eagle)
 bcftools +fill-AN-AC \
-   "$output_dir"/temp_"$input_vcf_name"_hg19_sorted.vcf.gz \
-   -Oz -o "$output_dir"/"$input_vcf_name"_hg19_sorted_fill.vcf.gz
+   "${out_dir}/tmp_${input_plink_name}_chr19_hg19.vcf.gz" \
+   -Oz -o "${out_dir}/${input_plink_name}_chr19_hg19_fill.vcf.gz"
 
 # Index sorted vcf
-bcftools index "$output_dir"/"$input_vcf_name"_hg19_sorted_fill.vcf.gz
+bcftools index "${out_dir}/${input_plink_name}_chr19_hg19_fill.vcf.gz"
 
 # Cleanup
-# rm "$output_dir"/temp_*
+rm "$out_dir"/tmp_*
